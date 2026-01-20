@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: x-twitter-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: mysql://dbuser:PikU%3D0px9@mysql:3306/x_for_spark
+      PORT: 3000
+      HOST: 0.0.0.0
+      CORS_ORIGIN: http://localhost:5173
+    ports:
+      - "3000:3000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: x-twitter-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+

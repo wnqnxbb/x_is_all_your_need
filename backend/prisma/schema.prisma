@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id            Int             @id @default(autoincrement())
+  name          String          @db.VarChar(255)
+  authToken      String          @map("auth_token") @db.VarChar(255)
+  restId        String?         @map("rest_id") @db.VarChar(255)
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @default(now()) @updatedAt @map("updated_at")
+
+  followingUsers FollowingUser[]
+  tweets        Tweet[]
+  fetchLogs     FetchLog[]
+
+  @@map("projects")
+}
+
+model FollowingUser {
+  id               Int       @id @default(autoincrement())
+  projectId        Int       @map("project_id")
+  screenName       String    @map("screen_name") @db.VarChar(255)
+  restId           String?   @map("rest_id") @db.VarChar(255)
+  profileImageUrl   String?   @map("profile_image_url") @db.Text
+  followersCount   Int?      @map("followers_count")
+  friendsCount     Int?      @map("friends_count")
+  location         String?   @db.VarChar(255)
+  isFollowing      Boolean   @default(false) @map("is_following")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  project          Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, screenName], map: "uk_project_screen_name")
+  @@map("following_users")
+}
+
+model Tweet {
+  id                        Int       @id @default(autoincrement())
+  projectId                 Int       @map("project_id")
+  screenName                String    @map("screen_name") @db.VarChar(255)
+  tweetId                   String    @map("tweet_id") @db.VarChar(50)
+  tweetUrl                  String    @map("tweet_url") @db.VarChar(500)
+  fullText                  String?   @map("full_text") @db.Text
+  images                    Json?     @db.Json
+  videos                    Json?     @db.Json
+  likeCount                 Int       @default(0) @map("like_count")
+  retweetCount              Int       @default(0) @map("retweet_count")
+  replyCount                Int       @default(0) @map("reply_count")
+  quoteCount                Int       @default(0) @map("quote_count")
+  authorName               String?   @map("author_name") @db.VarChar(255)
+  authorProfileImageUrl     String?   @map("author_profile_image_url") @db.Text
+  authorFollowersCount     Int?      @map("author_followers_count")
+  authorFriendsCount       Int?      @map("author_friends_count")
+  authorLocation           String?   @map("author_location") @db.VarChar(255)
+  createdAt               DateTime  @default(now()) @map("created_at")
+  fetchedAt               DateTime  @default(now()) @map("fetched_at")
+
+  project                 Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, tweetId], map: "uk_tweet_id")
+  @@index([createdAt], map: "idx_created_at")
+  @@index([fetchedAt], map: "idx_fetched_at")
+  @@map("tweets")
+}
+
+model FetchLog {
+  id           Int      @id @default(autoincrement())
+  projectId    Int      @map("project_id")
+  status       String   @db.VarChar(10)
+  tweetsCount  Int      @default(0) @map("tweets_count")
+  errorMessage String?  @map("error_message") @db.Text
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("fetch_logs")
+}

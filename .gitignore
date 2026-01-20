@@ -1,0 +1,6 @@
+/.npm-cache/
+/.claude/
+/backend/.npm-cache/
+/frontend/.npm-cache/
+/backend/node_modules/
+/frontend/node_modules/
